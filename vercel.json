@@ -1,0 +1,17 @@
+{
+  "functions": {
+    "api/score.go": {
+      "runtime": "go1.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/score",
+      "dest": "/api/score.go"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
