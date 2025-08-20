@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Live Score</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: grid; place-content: center; height: 100vh; text-align: center; background-color: #f0f2f5; margin: 0;}
+        .container { background-color: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 40px;}
+        .scoreBoard { display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; margin: 20px 0; }
+        .team { margin: 0 40px; }
+        .controls { display: flex; gap: 10px; justify-content: center; }
+        button { font-size: 1.5rem; width: 40px; height: 40px; border: 1px solid #ccc; border-radius: 50%; cursor: pointer; background-color: #e4e6eb;}
+        button.plus { background-color: #d0f0c0; }
+        button.minus { background-color: #ffc0cb; }
+        #resetBtn { font-size: 1rem; width: auto; padding: 10px 20px; margin-top: 20px; border-radius: 8px; background-color: #ffdddd; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Interactive Scoreboard</h1>
+    <div class="scoreBoard">
+        <div id="teamA" class="team">0</div>
+        <span>-</span>
+        <div id="teamB" class="team">0</div>
+    </div>
+    <div class="controls">
+        <button class="plus"  onclick="sendMessage('increment', 'A')">+</button>
+        <button class="minus" onclick="sendMessage('decrement', 'A')">-</button>
+        <div style="width: 100px;"></div> <button class="plus"  onclick="sendMessage('increment', 'B')">+</button>
+        <button class="minus" onclick="sendMessage('decrement', 'B')">-</button>
+    </div>
+    <button id="resetBtn" onclick="sendMessage('reset', null)">Reset Game</button>
+</div>
+
+<script>
+    const scoreAEl = document.getElementById('teamA');
+    const scoreBEl = document.getElementById('teamB');
+    const socket = new WebSocket('ws://localhost:8080/ws');
+
+    // Function to send commands to the server
+    function sendMessage(action, team) {
+        const message = { action, team };
+        socket.send(JSON.stringify(message));
+    }
+
+    // Listen for messages (state updates) from the server
+    socket.onmessage = function (event) {
+        console.log('State update received:', event.data);
+        try {
+            const gameState = JSON.parse(event.data);
+            scoreAEl.textContent = gameState.scoreA;
+            scoreBEl.textContent = gameState.scoreB;
+        } catch (error) {
+            console.error("Failed to parse game state:", error);
+        }
+    };
+
+    socket.onopen = () => console.log("WebSocket connection established.");
+    socket.onclose = () => console.log("WebSocket connection closed.");
+    socket.onerror = (error) => console.error("WebSocket error:", error);
+</script>
+</body>
+</html>
